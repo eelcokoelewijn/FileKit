@@ -94,6 +94,11 @@ public extension FileKit {
         guard let url = bundle.url(forResource: resource, withExtension: ext, subdirectory: subdir) else {
             throw(FileKitError.failedToLoad(path: URL(string: resource)!))
         }
-        return File(name: "\(resource).\(ext)", folder: Folder(path: url.baseURL!))
+        
+        var path: URL = URL(fileURLWithPath: url.pathComponents.first!)
+        url.pathComponents.dropFirst().dropLast().forEach { component in
+            path.appendPathComponent(component)
+        }
+        return File(name: "\(resource).\(ext)", folder: Folder(path: path))
     }
 }
