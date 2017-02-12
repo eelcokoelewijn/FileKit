@@ -4,7 +4,7 @@ public struct Folder {
     public let path: URL
     public let filePaths: [URL]
     
-    init(path: URL, filePaths: [URL] = []) {
+    public init(path: URL, filePaths: [URL] = []) {
         self.path = path
         self.filePaths = filePaths
     }

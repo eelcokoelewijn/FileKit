@@ -8,6 +8,8 @@ public enum FileKitError: Error {
 }
 
 public class FileKit {
+    public init() { }
+    
     public func save(file: File, withAttributes attr: [String: Any]? = nil) throws {
         if !FileManager.default.fileExists(atPath: file.folder.path.path) {
             try create(folder: file.folder, withAttributes: attr)
@@ -77,6 +79,14 @@ public extension FileKit {
         }
         return url
     }
+
+    public static func cachesFolder() -> Folder {
+        return Folder(path: pathToCachesFolder())
+    }
+    
+    public static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
+        return File(name: name, folder: cachesFolder(), data: data)
+    }
     
     public static func pathToDocumentsFolder() -> URL {
         let urls = FileManager.default.urls(for: FileManager.SearchPathDirectory.documentDirectory,
@@ -85,6 +95,14 @@ public extension FileKit {
             fatalError("Path to document folder not found")
         }
         return url
+    }
+    
+    public static func documentsFolder() -> Folder {
+        return Folder(path: pathToDocumentsFolder())
+    }
+    
+    public static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
+        return File(name: name, folder: documentsFolder(), data: data)
     }
     
     public static func path(forResource resource: String,
