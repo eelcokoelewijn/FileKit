@@ -52,11 +52,15 @@ public class FileKit {
                 try FileManager.default.createDirectory(at: folder.path, withIntermediateDirectories: true, attributes: attr)
             } catch {
                 if let c = completion {
-                    c(.failedToCreate(path: folder.path))
+                    DispatchQueue.main.async {
+                        c(.failedToCreate(path: folder.path))
+                    }
                 }
             }
             if let c = completion {
-                c(.success(folder.path))
+                DispatchQueue.main.async {
+                    c(.success(folder.path))
+                }
             }
         }
         
@@ -69,17 +73,21 @@ public class FileKit {
             guard let data = FileManager
                 .default
                 .contents(atPath: file.path.path) else {
-                    completion(.failedToLoad(path: file.path))
+                    DispatchQueue.main.async {
+                        completion(.failedToLoad(path: file.path))
+                    }
                     return
             }
-            completion(.success(File(name: file.name, folder: file.folder, data: data)))
+            DispatchQueue.main.async {
+                completion(.success(File(name: file.name, folder: file.folder, data: data)))
+            }
         }
         
     }
     
     public func load(folder: Folder,
                      queue: DispatchQueue = DispatchQueue.main,
-                     completion: ((FileKitResult<Folder>) -> ())) {
+                     completion: @escaping ((FileKitResult<Folder>) -> ())) {
         queue.sync {
             let fileURLs: [URL]
             do {
@@ -87,10 +95,14 @@ public class FileKit {
                     .default
                     .contentsOfDirectory(at: folder.path, includingPropertiesForKeys: nil)
             } catch {
-                completion(.failedToLoad(path: folder.path))
+                DispatchQueue.main.async {
+                    completion(.failedToLoad(path: folder.path))
+                }
                 return
             }
-            completion(.success(Folder(path: folder.path, filePaths: fileURLs)))
+            DispatchQueue.main.async {
+                completion(.success(Folder(path: folder.path, filePaths: fileURLs)))
+            }
         }
     }
     
@@ -102,11 +114,15 @@ public class FileKit {
                 try FileManager.default.removeItem(at: file.path)
             } catch {
                 if let c = completion {
-                    c(.failedToDelete(path: file.path))
+                    DispatchQueue.main.async {
+                        c(.failedToDelete(path: file.path))
+                    }
                 }
             }
             if let c = completion {
-                c(.success(file.path))
+                DispatchQueue.main.async {
+                    c(.success(file.path))
+                }
             }
         }
     }
@@ -119,11 +135,15 @@ public class FileKit {
                 try FileManager.default.removeItem(at: folder.path)
             } catch {
                 if let c = completion {
-                    c(.failedToDelete(path: folder.path))
+                    DispatchQueue.main.async {
+                        c(.failedToDelete(path: folder.path))
+                    }
                 }
             }
             if let c = completion {
-                c(.success(folder.path))
+                DispatchQueue.main.async {
+                    c(.success(folder.path))
+                }
             }
         }
     }
