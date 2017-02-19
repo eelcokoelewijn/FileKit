@@ -1,71 +1,130 @@
 import Foundation
 
-public enum FileKitError: Error {
+public enum FileKitResult<T>: Error {
     case failedToSave(path: URL)
     case failedToLoad(path: URL)
     case failedToDelete(path: URL)
     case failedToCreate(path: URL)
+    case success(T)
 }
 
 public class FileKit {
     public init() { }
     
-    public func save(file: File, withAttributes attr: [String: Any]? = nil) throws {
-        if !FileManager.default.fileExists(atPath: file.folder.path.path) {
-            try create(folder: file.folder, withAttributes: attr)
-        }
-        guard FileManager
-            .default
-            .createFile(atPath: file.path.path,
-                        contents: file.data,
-                        attributes: attr) == true else {
-                            throw(FileKitError.failedToSave(path: file.path))
+    public func save(file: File,
+                     queue: DispatchQueue = DispatchQueue.main,
+                     withAttributes attr: [String: Any]? = nil,
+                     completion: ((FileKitResult<URL>) -> ())? = nil) {
+        queue.async { [weak self] in
+            if !FileManager.default.fileExists(atPath: file.folder.path.path) {
+                self?.create(folder: file.folder, withAttributes: attr) { result in
+                    if let c = completion {
+                        DispatchQueue.main.async {
+                            c(result)
+                        }
+                    }
+                }
+            }
+            guard FileManager
+                .default
+                .createFile(atPath: file.path.path, contents: file.data, attributes: attr) == true else {
+                    if let c = completion {
+                        DispatchQueue.main.async {
+                            c(FileKitResult.failedToSave(path: file.path))
+                        }
+                    }
+                    return
+            }
+            if let c = completion {
+                DispatchQueue.main.async {
+                    c(.success(file.path))
+                }
+            }
         }
     }
     
-    public func create(folder: Folder, withAttributes attr: [String: Any]? = nil) throws {
-        do {
-            try FileManager.default.createDirectory(at: folder.path, withIntermediateDirectories: true, attributes: attr)
-        } catch {
-            throw FileKitError.failedToCreate(path: folder.path)
-        }
-    }
-    
-    public func load(file: File) throws -> File {
-        guard let data = FileManager
-            .default
-            .contents(atPath: file.path.path) else {
-                throw(FileKitError.failedToLoad(path: file.path))
+    public func create(folder: Folder,
+                       queue: DispatchQueue = DispatchQueue.main,
+                       withAttributes attr: [String: Any]? = nil,
+                       completion: ((FileKitResult<URL>) -> ())? = nil) {
+        queue.async {
+            do {
+                try FileManager.default.createDirectory(at: folder.path, withIntermediateDirectories: true, attributes: attr)
+            } catch {
+                if let c = completion {
+                    c(.failedToCreate(path: folder.path))
+                }
+            }
+            if let c = completion {
+                c(.success(folder.path))
+            }
         }
         
-        return File(name: file.name, folder: file.folder, data: data)
     }
     
-    public func load(folder: Folder) throws -> Folder {
-        let fileURLs: [URL]
-        do {
-            fileURLs = try FileManager
-            .default
-            .contentsOfDirectory(at: folder.path, includingPropertiesForKeys: nil)
-        } catch {
-            throw FileKitError.failedToLoad(path: folder.path)
+    public func load(file: File,
+                     queue: DispatchQueue = DispatchQueue.main,
+                     completion: @escaping ((FileKitResult<File>) -> ())) {
+        queue.async {
+            guard let data = FileManager
+                .default
+                .contents(atPath: file.path.path) else {
+                    completion(.failedToLoad(path: file.path))
+                    return
+            }
+            completion(.success(File(name: file.name, folder: file.folder, data: data)))
         }
-        return Folder(path: folder.path, filePaths: fileURLs)
+        
     }
     
-    public func delete(file: File) throws {
-        do {
-            try FileManager.default.removeItem(at: file.path)
-        } catch {
-            throw(FileKitError.failedToDelete(path: file.path))
+    public func load(folder: Folder,
+                     queue: DispatchQueue = DispatchQueue.main,
+                     completion: ((FileKitResult<Folder>) -> ())) {
+        queue.sync {
+            let fileURLs: [URL]
+            do {
+                fileURLs = try FileManager
+                    .default
+                    .contentsOfDirectory(at: folder.path, includingPropertiesForKeys: nil)
+            } catch {
+                completion(.failedToLoad(path: folder.path))
+                return
+            }
+            completion(.success(Folder(path: folder.path, filePaths: fileURLs)))
         }
     }
     
-    public func delete(folder: Folder) throws {
-        do {
-            try FileManager.default.removeItem(at: folder.path)
-        } catch {
-            throw(FileKitError.failedToDelete(path: folder.path))
+    public func delete(file: File,
+                       queue: DispatchQueue = DispatchQueue.main,
+                       completion: ((FileKitResult<URL>) -> ())? = nil) {
+        queue.async {
+            do {
+                try FileManager.default.removeItem(at: file.path)
+            } catch {
+                if let c = completion {
+                    c(.failedToDelete(path: file.path))
+                }
+            }
+            if let c = completion {
+                c(.success(file.path))
+            }
+        }
+    }
+    
+    public func delete(folder: Folder,
+                       queue: DispatchQueue = DispatchQueue.main,
+                       completion: ((FileKitResult<URL>) -> ())? = nil) {
+        queue.async {
+            do {
+                try FileManager.default.removeItem(at: folder.path)
+            } catch {
+                if let c = completion {
+                    c(.failedToDelete(path: folder.path))
+                }
+            }
+            if let c = completion {
+                c(.success(folder.path))
+            }
         }
     }
 }
@@ -110,7 +169,7 @@ public extension FileKit {
                             inBundle bundle: Bundle,
                             subdirectory subdir: String? = nil) throws -> File {
         guard let url = bundle.url(forResource: resource, withExtension: ext, subdirectory: subdir) else {
-            throw(FileKitError.failedToLoad(path: URL(string: resource)!))
+            throw(FileKitResult<Any>.failedToLoad(path: URL(string: resource)!))
         }
         
         var path: URL = URL(fileURLWithPath: url.pathComponents.first!)

@@ -20,18 +20,13 @@ class FileKitTests: XCTestCase {
         let data = "Hello World".data(using: String.Encoding.utf8)
         let folder = Folder(path: folderURL)
         let file = File(name: filename, folder: folder, data: data)
-        
-        do {
-            try subject.save(file: file)
-            do {
-                let loadedfile = try subject.load(file: file)
+    
+        subject.save(file: file)
+        subject.load(file: file) { result in
+            if case let .success(loadedfile) = result {
                 XCTAssertEqual(file, loadedfile)
-            } catch {
-                XCTFail("Loading of \(file.path) failed")
             }
-            try subject.delete(folder: folder)
-        } catch {
-            XCTFail("Saving and deleting of \(file.path) failed")
+            XCTFail("Failed to load file")
         }
     }
     
@@ -39,10 +34,13 @@ class FileKitTests: XCTestCase {
         let subject = FileKit()
         let folder = Folder(path: folderURL)
         
-        try! subject.create(folder: folder)
-        XCTAssertTrue(isAccessable(path: folder.path))
-        try! subject.delete(folder: folder)
-        XCTAssertFalse(isAccessable(path: folder.path))
+        subject.create(folder: folder) { _ in
+            XCTAssertTrue(self.isAccessable(path: folder.path))
+        }
+        
+        subject.delete(folder: folder) { _ in 
+            XCTAssertFalse(self.isAccessable(path: folder.path))
+        }
     }
     
     func testIfFilePathIsSetToCachesFolder() {
@@ -60,13 +58,34 @@ class FileKitTests: XCTestCase {
     func testIfCreatingFolderWithWrongPathThrows() {
         let subject = FileKit()
         let folder = Folder(path: invalidPath)
-        do {
-            try subject.create(folder: folder)
-        } catch FileKitError.failedToCreate(let path) {
-            XCTAssertEqual(path, folder.path)
-        } catch {
+        subject.create(folder: folder) { result in
+            if case let .success(urlOfFolder) = result {
+                XCTAssertEqual(urlOfFolder, folder.path)
+            }
             XCTFail("Creating folder with invalid path should throw")
         }
+    }
+    
+    func testIfFilesAreEqual() {
+        let folderA = FileKit.cachesFolder()
+        let fileA = File(name: "A.png", folder: folderA)
+        let folderB = FileKit.cachesFolder()
+        let fileB = File(name: "B.png", folder: folderB)
+        
+        XCTAssertNotEqual(fileA, fileB)
+        XCTAssertEqual(fileA, fileA)
+        XCTAssertNotEqual(fileA.path, fileB.path)
+    }
+    
+    func testIfFoldersAreEqual() {
+        let folderPathA = FileKit.cachesFolder().path.appendingPathComponent("document")
+        let folderA = Folder(path: folderPathA)
+        let folderPathB = FileKit.cachesFolder().path.appendingPathComponent("images")
+        let folderB = Folder(path: folderPathB)
+        
+        XCTAssertNotEqual(folderA, folderB)
+        XCTAssertEqual(folderA, folderA)
+        XCTAssertNotEqual(folderA.path, folderB.path)
     }
     
     private func isAccessable(path: URL) -> Bool {
@@ -78,7 +97,9 @@ class FileKitTests: XCTestCase {
             ("testIfFilePathIsSetToCachesFolder", testIfFilePathIsSetToCachesFolder),
             ("testSavingOfFile",testSavingLoadingandDeletingOfFile),
             ("testIfCreatingOfDirectoryWorks", testIfCreatingOfDirectoryWorks),
-            ("testIfFilePathIsSetToDocumentsFolder", testIfFilePathIsSetToDocumentsFolder)
+            ("testIfFilePathIsSetToDocumentsFolder", testIfFilePathIsSetToDocumentsFolder),
+            ("testIfFilesAreEqual", testIfFilesAreEqual),
+            ("testIfFoldersAreEqual",testIfFoldersAreEqual)
         ]
     }
 }
