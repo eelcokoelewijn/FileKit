@@ -88,7 +88,7 @@ public class FileKit {
     public func load(folder: Folder,
                      queue: DispatchQueue = DispatchQueue.main,
                      completion: @escaping ((FileKitResult<Folder>) -> ())) {
-        queue.sync {
+        queue.async {
             let fileURLs: [URL]
             do {
                 fileURLs = try FileManager
