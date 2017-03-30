@@ -17,13 +17,7 @@ public class FileKit {
                      completion: ((FileKitResult<URL>) -> ())? = nil) {
         queue.async { [weak self] in
             if !FileManager.default.fileExists(atPath: file.folder.path.path) {
-                self?.create(folder: file.folder, withAttributes: attr) { result in
-                    if let c = completion {
-                        DispatchQueue.main.async {
-                            c(result)
-                        }
-                    }
-                }
+                self?.create(folder: file.folder, queue: queue, withAttributes: attr)
             }
             guard FileManager
                 .default
