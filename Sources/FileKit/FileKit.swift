@@ -15,9 +15,9 @@ public class FileKit {
                      queue: DispatchQueue = DispatchQueue.main,
                      withAttributes attr: [String: Any]? = nil,
                      completion: ((FileKitResult<URL>) -> ())? = nil) {
-        queue.async { [weak self] in
+        queue.async {
             if !FileManager.default.fileExists(atPath: file.folder.path.path) {
-                self?.create(folder: file.folder, queue: queue, withAttributes: attr)
+                self.create(folder: file.folder, queue: queue, withAttributes: attr)
             }
             guard FileManager
                 .default
