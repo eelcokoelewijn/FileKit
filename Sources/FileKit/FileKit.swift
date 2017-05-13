@@ -10,11 +10,11 @@ public enum FileKitResult<T>: Error {
 
 public class FileKit {
     public init() { }
-    
+
     public func save(file: File,
                      queue: DispatchQueue = DispatchQueue.main,
                      withAttributes attr: [String: Any]? = nil,
-                     completion: ((FileKitResult<URL>) -> ())? = nil) {
+                     completion: ((FileKitResult<URL>) -> Void)? = nil) {
         queue.async {
             if !FileManager.default.fileExists(atPath: file.folder.path.path) {
                 self.create(folder: file.folder, queue: queue, withAttributes: attr)
@@ -36,14 +36,16 @@ public class FileKit {
             }
         }
     }
-    
+
     public func create(folder: Folder,
                        queue: DispatchQueue = DispatchQueue.main,
                        withAttributes attr: [String: Any]? = nil,
-                       completion: ((FileKitResult<URL>) -> ())? = nil) {
+                       completion: ((FileKitResult<URL>) -> Void)? = nil) {
         queue.async {
             do {
-                try FileManager.default.createDirectory(at: folder.path, withIntermediateDirectories: true, attributes: attr)
+                try FileManager.default.createDirectory(at: folder.path,
+                                                        withIntermediateDirectories: true,
+                                                        attributes: attr)
             } catch {
                 if let c = completion {
                     DispatchQueue.main.async {
@@ -57,12 +59,12 @@ public class FileKit {
                 }
             }
         }
-        
+
     }
-    
+
     public func load(file: File,
                      queue: DispatchQueue = DispatchQueue.main,
-                     completion: @escaping ((FileKitResult<File>) -> ())) {
+                     completion: @escaping ((FileKitResult<File>) -> Void)) {
         queue.async {
             guard let data = FileManager
                 .default
@@ -76,12 +78,12 @@ public class FileKit {
                 completion(.success(File(name: file.name, folder: file.folder, data: data)))
             }
         }
-        
+
     }
-    
+
     public func load(folder: Folder,
                      queue: DispatchQueue = DispatchQueue.main,
-                     completion: @escaping ((FileKitResult<Folder>) -> ())) {
+                     completion: @escaping ((FileKitResult<Folder>) -> Void)) {
         queue.async {
             let fileURLs: [URL]
             do {
@@ -99,10 +101,10 @@ public class FileKit {
             }
         }
     }
-    
+
     public func delete(file: File,
                        queue: DispatchQueue = DispatchQueue.main,
-                       completion: ((FileKitResult<URL>) -> ())? = nil) {
+                       completion: ((FileKitResult<URL>) -> Void)? = nil) {
         queue.async {
             do {
                 try FileManager.default.removeItem(at: file.path)
@@ -120,10 +122,10 @@ public class FileKit {
             }
         }
     }
-    
+
     public func delete(folder: Folder,
                        queue: DispatchQueue = DispatchQueue.main,
-                       completion: ((FileKitResult<URL>) -> ())? = nil) {
+                       completion: ((FileKitResult<URL>) -> Void)? = nil) {
         queue.async {
             do {
                 try FileManager.default.removeItem(at: folder.path)
@@ -156,11 +158,11 @@ public extension FileKit {
     public static func cachesFolder() -> Folder {
         return Folder(path: pathToCachesFolder())
     }
-    
+
     public static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
         return File(name: name, folder: cachesFolder(), data: data)
     }
-    
+
     public static func pathToDocumentsFolder() -> URL {
         let urls = FileManager.default.urls(for: FileManager.SearchPathDirectory.documentDirectory,
                                             in: FileManager.SearchPathDomainMask.userDomainMask)
@@ -169,15 +171,15 @@ public extension FileKit {
         }
         return url
     }
-    
+
     public static func documentsFolder() -> Folder {
         return Folder(path: pathToDocumentsFolder())
     }
-    
+
     public static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
         return File(name: name, folder: documentsFolder(), data: data)
     }
-    
+
     public static func path(forResource resource: String,
                             withExtension ext: String,
                             inBundle bundle: Bundle,
@@ -185,7 +187,7 @@ public extension FileKit {
         guard let url = bundle.url(forResource: resource, withExtension: ext, subdirectory: subdir) else {
             throw(FileKitResult<Any>.failedToLoad(path: URL(string: resource)!))
         }
-        
+
         var path: URL = URL(fileURLWithPath: url.pathComponents.first!)
         url.pathComponents.dropFirst().dropLast().forEach { component in
             path.appendPathComponent(component)
