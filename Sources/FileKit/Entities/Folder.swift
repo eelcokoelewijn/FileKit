@@ -1,11 +1,11 @@
 import Foundation
 
 public struct Folder {
-    public let path: URL
+    public let location: URL
     public let filePaths: [URL]
 
-    public init(path: URL, filePaths: [URL] = []) {
-        self.path = path
+    public init(location: URL, filePaths: [URL] = []) {
+        self.location = location
         self.filePaths = filePaths
     }
 }
@@ -13,5 +13,5 @@ public struct Folder {
 extension Folder: Equatable {}
 
 public func == (lhs: Folder, rhs: Folder) -> Bool {
-    return lhs.path == rhs.path && lhs.filePaths == rhs.filePaths
+    return lhs.location == rhs.location && lhs.filePaths == rhs.filePaths
 }

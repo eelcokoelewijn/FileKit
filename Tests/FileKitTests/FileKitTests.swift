@@ -15,55 +15,81 @@ class FileKitTests: XCTestCase {
         invalidPath = URL(string: "file://invalid")
     }
 
-    func testSavingLoadingandDeletingOfFile() {
+    override func tearDown() {
+        do {
+            try FileManager.default.removeItem(atPath: folderURL.path)
+        } catch {
+            print("failed to remove dir")
+        }
+    }
+
+    func testSavingLoadingOfFile() {
         let subject = FileKit()
         let data = "Hello World".data(using: String.Encoding.utf8)
-        let folder = Folder(path: folderURL)
+        let folder = Folder(location: folderURL)
         let file = File(name: filename, folder: folder, data: data)
 
-        subject.save(file: file)
-        subject.load(file: file) { result in
-            if case let .success(loadedfile) = result {
-                XCTAssertEqual(file, loadedfile)
+        let expectation = XCTestExpectation(description: "Wait for folder & file to be created")
+        subject.create(folder: file.folder) { result in
+            if case .success(_) = result {
+                subject.save(file: file) { result in
+                    if case .success(_) = result {
+                        subject.load(file: file) { result in
+                            if case let .success(loadedfile) = result {
+                                XCTAssertEqual(file, loadedfile)
+                                expectation.fulfill()
+                            } else {
+                                XCTFail("Failed to load file")
+                            }
+                        }
+                    }
+                }
+            } else {
+                XCTFail("Failed to create folder")
             }
-            XCTFail("Failed to load file")
         }
+        wait(for: [expectation], timeout: 1.0)
     }
 
     func testIfCreatingOfDirectoryWorks() {
         let subject = FileKit()
-        let folder = Folder(path: folderURL)
+        let folder = Folder(location: folderURL)
 
+        let expectation = XCTestExpectation(description: "Wait for folder to be created")
         subject.create(folder: folder) { _ in
-            XCTAssertTrue(self.isAccessable(path: folder.path))
+            XCTAssertTrue(self.isAccessable(path: folder.location))
+            expectation.fulfill()
         }
-
-        subject.delete(folder: folder) { _ in
-            XCTAssertFalse(self.isAccessable(path: folder.path))
-        }
+        wait(for: [expectation], timeout: 1.0)
     }
 
     func testIfFilePathIsSetToCachesFolder() {
         let cachesPath = FileKit.pathToCachesFolder()
-        let file = File(name: "file.txt", folder: Folder(path: cachesPath))
-        XCTAssertEqual(file.folder.path, cachesPath, "\(file.folder.path) should be equal to \(cachesPath)")
+        let file = File(name: "file.txt", folder: Folder(location: cachesPath))
+        XCTAssertEqual(file.folder.location, cachesPath, "\(file.folder.location) should be equal to \(cachesPath)")
     }
 
     func testIfFilePathIsSetToDocumentsFolder() {
         let documentsPath = FileKit.pathToDocumentsFolder()
-        let file = File(name: "file.txt", folder: Folder(path: documentsPath))
-        XCTAssertEqual(file.folder.path, documentsPath, "\(file.folder.path) should be equal to \(documentsPath)")
+        let file = File(name: "file.txt", folder: Folder(location: documentsPath))
+        XCTAssertEqual(file.folder.location,
+                       documentsPath,
+                       "\(file.folder.location) should be equal to \(documentsPath)")
     }
 
-    func testIfCreatingFolderWithWrongPathThrows() {
+    func testIfCreatingFolderWithWrongPathFails() {
         let subject = FileKit()
-        let folder = Folder(path: invalidPath)
+        let folder = Folder(location: invalidPath)
+        let expectation = XCTestExpectation(description: "Wait for folder to be created")
         subject.create(folder: folder) { result in
-            if case let .success(urlOfFolder) = result {
-                XCTAssertEqual(urlOfFolder, folder.path)
+            if case let .failedToCreate(urlOfFolder) = result {
+                XCTAssertEqual(urlOfFolder, folder.location)
+                expectation.fulfill()
+            } else {
+                XCTFail("Creating folder with invalid path should return error")
             }
-            XCTFail("Creating folder with invalid path should throw")
         }
+        wait(for: [expectation], timeout: 1.0)
     }
 
     func testIfFilesAreEqual() {
@@ -74,18 +100,18 @@ class FileKitTests: XCTestCase {
 
         XCTAssertNotEqual(fileA, fileB)
         XCTAssertEqual(fileA, fileA)
-        XCTAssertNotEqual(fileA.path, fileB.path)
+        XCTAssertNotEqual(fileA.location, fileB.location)
     }
 
     func testIfFoldersAreEqual() {
-        let folderPathA = FileKit.cachesFolder().path.appendingPathComponent("document")
-        let folderA = Folder(path: folderPathA)
-        let folderPathB = FileKit.cachesFolder().path.appendingPathComponent("images")
-        let folderB = Folder(path: folderPathB)
+        let folderPathA = FileKit.cachesFolder().location.appendingPathComponent("document")
+        let folderA = Folder(location: folderPathA)
+        let folderPathB = FileKit.cachesFolder().location.appendingPathComponent("images")
+        let folderB = Folder(location: folderPathB)
 
         XCTAssertNotEqual(folderA, folderB)
         XCTAssertEqual(folderA, folderA)
-        XCTAssertNotEqual(folderA.path, folderB.path)
+        XCTAssertNotEqual(folderA.location, folderB.location)
     }
 
     private func isAccessable(path: URL) -> Bool {
@@ -95,7 +121,7 @@ class FileKitTests: XCTestCase {
     static var allTests: [(String, (FileKitTests) -> () throws -> Void)] {
         return [
             ("testIfFilePathIsSetToCachesFolder", testIfFilePathIsSetToCachesFolder),
-            ("testSavingOfFile", testSavingLoadingandDeletingOfFile),
+            ("testSavingOfFile", testSavingLoadingOfFile),
             ("testIfCreatingOfDirectoryWorks", testIfCreatingOfDirectoryWorks),
             ("testIfFilePathIsSetToDocumentsFolder", testIfFilePathIsSetToDocumentsFolder),
             ("testIfFilesAreEqual", testIfFilesAreEqual),

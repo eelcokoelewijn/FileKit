@@ -19,7 +19,7 @@ public func == (lhs: File, rhs: File) -> Bool {
 }
 
 extension File {
-    public var path: URL {
-        return folder.path.appendingPathComponent(name)
+    public var location: URL {
+        return folder.location.appendingPathComponent(name)
     }
 }
