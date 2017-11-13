@@ -14,7 +14,7 @@ public class FileKit {
 
     public func save(file: File,
                      completionQueue: DispatchQueue = DispatchQueue.main,
-                     withAttributes attr: [String: Any]? = nil,
+                     withAttributes attr: [FileAttributeKey: Any]? = nil,
                      completion: ((FileKitResult<URL>) -> Void)? = nil) {
         let workerQueue = DispatchQueue.global()
         workerQueue.async {
@@ -40,7 +40,7 @@ public class FileKit {
 
     public func create(folder: Folder,
                        completionQueue: DispatchQueue = DispatchQueue.main,
-                       withAttributes attr: [String: Any]? = nil,
+                       withAttributes attr: [FileAttributeKey: Any]? = nil,
                        completion: ((FileKitResult<URL>) -> Void)? = nil) {
         let workerQueue = DispatchQueue.global()
         workerQueue.async {
