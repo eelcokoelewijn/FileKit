@@ -9,7 +9,7 @@ class FileKitTests: XCTestCase {
     var invalidPath: URL!
 
     override func setUp() {
-        pathToCache = FileKit.pathToCachesFolder()
+        pathToCache = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
         folderURL = URL(string: "filekit", relativeTo: pathToCache)
         filename = "file.txt"
         invalidPath = URL(string: "file://invalid")
@@ -64,13 +64,13 @@ class FileKitTests: XCTestCase {
     }
 
     func testIfFilePathIsSetToCachesFolder() {
-        let cachesPath = FileKit.pathToCachesFolder()
+        let cachesPath = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
         let file = File(name: "file.txt", folder: Folder(location: cachesPath))
         XCTAssertEqual(file.folder.location, cachesPath, "\(file.folder.location) should be equal to \(cachesPath)")
     }
 
     func testIfFilePathIsSetToDocumentsFolder() {
-        let documentsPath = FileKit.pathToDocumentsFolder()
+        let documentsPath = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
         let file = File(name: "file.txt", folder: Folder(location: documentsPath))
         XCTAssertEqual(file.folder.location,
                        documentsPath,

@@ -153,34 +153,33 @@ public class FileKit {
 }
 
 public extension FileKit {
-    public static func pathToCachesFolder() -> URL {
-        let urls = FileManager.default.urls(for: FileManager.SearchPathDirectory.cachesDirectory,
+    public static func pathToFolder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> URL {
+        let urls = FileManager.default.urls(for: searchPath,
                                             in: FileManager.SearchPathDomainMask.userDomainMask)
         guard let url = urls.first else {
-            fatalError("Path to caches folder not found")
+            fatalError("Path to \(searchPath) folder not found")
         }
         return url
     }
 
+    public static func userFolder() -> Folder {
+        return Folder(location: pathToFolder(forSearchPath: .userDirectory))
+    }
+
+    public static func fileInUserFolder(withName name: String, data: Data? = nil) -> File {
+        return File(name: name, folder: userFolder(), data: data)
+    }
+
     public static func cachesFolder() -> Folder {
-        return Folder(location: pathToCachesFolder())
+        return Folder(location: pathToFolder(forSearchPath: .cachesDirectory))
     }
 
     public static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
         return File(name: name, folder: cachesFolder(), data: data)
     }
 
-    public static func pathToDocumentsFolder() -> URL {
-        let urls = FileManager.default.urls(for: FileManager.SearchPathDirectory.documentDirectory,
-                                            in: FileManager.SearchPathDomainMask.userDomainMask)
-        guard let url = urls.first else {
-            fatalError("Path to document folder not found")
-        }
-        return url
-    }
-
     public static func documentsFolder() -> Folder {
-        return Folder(location: pathToDocumentsFolder())
+        return Folder(location: pathToFolder(forSearchPath: .documentDirectory))
     }
 
     public static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
