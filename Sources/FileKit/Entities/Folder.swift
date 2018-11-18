@@ -10,8 +10,4 @@ public struct Folder {
     }
 }
 
-extension Folder: Equatable {}
-
-public func == (lhs: Folder, rhs: Folder) -> Bool {
-    return lhs.location == rhs.location && lhs.filePaths == rhs.filePaths
-}
+extension Folder: Equatable { }

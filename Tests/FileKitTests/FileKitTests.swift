@@ -93,9 +93,9 @@ class FileKitTests: XCTestCase {
     }
 
     func testIfFilesAreEqual() {
-        let folderA = FileKit.cachesFolder()
+        let folderA = FileKit.folder(forSearchPath: .cachesDirectory)
         let fileA = File(name: "A.png", folder: folderA)
-        let folderB = FileKit.cachesFolder()
+        let folderB = FileKit.folder(forSearchPath: .cachesDirectory)
         let fileB = File(name: "B.png", folder: folderB)
 
         XCTAssertNotEqual(fileA, fileB)
@@ -104,9 +104,9 @@ class FileKitTests: XCTestCase {
     }
 
     func testIfFoldersAreEqual() {
-        let folderPathA = FileKit.cachesFolder().location.appendingPathComponent("document")
+        let folderPathA = FileKit.folder(forSearchPath: .cachesDirectory).location.appendingPathComponent("document")
         let folderA = Folder(location: folderPathA)
-        let folderPathB = FileKit.cachesFolder().location.appendingPathComponent("images")
+        let folderPathB = FileKit.folder(forSearchPath: .cachesDirectory).location.appendingPathComponent("images")
         let folderB = Folder(location: folderPathB)
 
         XCTAssertNotEqual(folderA, folderB)

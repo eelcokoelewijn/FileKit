@@ -14,10 +14,6 @@ public struct File {
 
 extension File: Equatable { }
 
-public func == (lhs: File, rhs: File) -> Bool {
-    return lhs.name == rhs.name && lhs.data == rhs.data && lhs.folder == rhs.folder
-}
-
 extension File {
     public var location: URL {
         return folder.location.appendingPathComponent(name)

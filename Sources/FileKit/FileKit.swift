@@ -162,28 +162,16 @@ public extension FileKit {
         return url
     }
 
-    public static func userFolder() -> Folder {
-        return Folder(location: pathToFolder(forSearchPath: .userDirectory))
-    }
-
-    public static func fileInUserFolder(withName name: String, data: Data? = nil) -> File {
-        return File(name: name, folder: userFolder(), data: data)
-    }
-
-    public static func cachesFolder() -> Folder {
-        return Folder(location: pathToFolder(forSearchPath: .cachesDirectory))
+    public static func folder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> Folder {
+        return Folder(location: pathToFolder(forSearchPath: searchPath))
     }
 
     public static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
-        return File(name: name, folder: cachesFolder(), data: data)
-    }
-
-    public static func documentsFolder() -> Folder {
-        return Folder(location: pathToFolder(forSearchPath: .documentDirectory))
+        return File(name: name, folder: folder(forSearchPath: .cachesDirectory), data: data)
     }
 
     public static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
-        return File(name: name, folder: documentsFolder(), data: data)
+        return File(name: name, folder: folder(forSearchPath: .documentDirectory), data: data)
     }
 
     public static func path(forResource resource: String,
