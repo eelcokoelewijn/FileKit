@@ -97,8 +97,14 @@ public class FileKit {
                              completionHandler: completion)
                 return
             }
+            let files: [File] = fileURLs.map({ (url: URL) -> File in
+                File(name: url.lastPathComponent,
+                     folder: Folder(location: folder.location))
+            })
             self.execute(onQueue: completionQueue,
-                         withResult: .success(Folder(location: folder.location, filePaths: fileURLs)),
+                         withResult: .success(Folder(location: folder.location,
+                                                     filePaths: fileURLs,
+                                                     files: files)),
                          completionHandler: completion)
         }
     }

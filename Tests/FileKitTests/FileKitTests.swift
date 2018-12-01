@@ -5,6 +5,7 @@ import Foundation
 class FileKitTests: XCTestCase {
     var folderURL: URL!
     var filename: String!
+    var filename1: String!
     var pathToCache: URL!
     var invalidPath: URL!
 
@@ -12,11 +13,13 @@ class FileKitTests: XCTestCase {
         pathToCache = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
         folderURL = URL(string: "filekit", relativeTo: pathToCache)
         filename = "file.txt"
+        filename1 = "file1.txt"
         invalidPath = URL(string: "file://invalid")
     }
 
     override func tearDown() {
         do {
+            print("Tear-down: deleting folder: \(folderURL.path)")
             try FileManager.default.removeItem(atPath: folderURL.path)
         } catch {
             print("failed to remove dir")
@@ -46,6 +49,31 @@ class FileKitTests: XCTestCase {
                 }
             } else {
                 XCTFail("Failed to create folder")
+            }
+        }
+        wait(for: [expectation], timeout: 1.0)
+    }
+
+    func testLoadingOfFolder() {
+        let subject = FileKit()
+        let data = "Hello World".data(using: String.Encoding.utf8)
+        let folder = Folder(location: folderURL)
+        let file = File(name: filename, folder: folder, data: data)
+        let file1 = File(name: filename1, folder: folder, data: data)
+
+        let expectation = XCTestExpectation(description: "Wait folder & files to be created")
+        subject.create(folder: folder) { result in
+            guard case .success(_) = result else { XCTFail("Failed to create folder"); return }
+            subject.save(file: file) { result in
+                guard case .success(_) = result else { XCTFail("Failed to create file"); return }
+                subject.save(file: file1) { result in
+                    guard case .success(_) = result else { XCTFail("Failed to create file1"); return }
+                    subject.load(folder: folder) { (result) in
+                        guard case let .success(folder) = result else { XCTFail("Failed to load folder"); return }
+                        XCTAssert(folder.files.count == 2, "Folder file count is not 2")
+                        expectation.fulfill()
+                    }
+                }
             }
         }
         wait(for: [expectation], timeout: 1.0)
