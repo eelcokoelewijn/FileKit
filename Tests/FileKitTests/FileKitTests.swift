@@ -31,25 +31,18 @@ class FileKitTests: XCTestCase {
         let data = "Hello World".data(using: String.Encoding.utf8)
         let folder = Folder(location: folderURL)
         let file = File(name: filename, folder: folder, data: data)
-
         let expectation = XCTestExpectation(description: "Wait for folder & file to be created")
-        subject.create(folder: file.folder) { result in
-            if case .success(_) = result {
-                subject.save(file: file) { result in
-                    if case .success(_) = result {
-                        subject.load(file: file) { result in
-                            if case let .success(loadedfile) = result {
-                                XCTAssertEqual(file, loadedfile)
-                                expectation.fulfill()
-                            } else {
-                                XCTFail("Failed to load file")
-                            }
-                        }
-                    }
-                }
-            } else {
-                XCTFail("Failed to create folder")
+        do {
+            _ = try subject.create(folder: file.folder)
+            _ = try subject.save(file: file)
+            guard let loadedFile = try? subject.load(file: file) else {
+                XCTFail("Failed to load file")
+                return
             }
+            XCTAssertEqual(file, loadedFile)
+            expectation.fulfill()
+        } catch {
+            XCTFail("Failed to create folder")
         }
         wait(for: [expectation], timeout: 1.0)
     }
@@ -62,19 +55,15 @@ class FileKitTests: XCTestCase {
         let file1 = File(name: filename1, folder: folder, data: data)
 
         let expectation = XCTestExpectation(description: "Wait folder & files to be created")
-        subject.create(folder: folder) { result in
-            guard case .success(_) = result else { XCTFail("Failed to create folder"); return }
-            subject.save(file: file) { result in
-                guard case .success(_) = result else { XCTFail("Failed to create file"); return }
-                subject.save(file: file1) { result in
-                    guard case .success(_) = result else { XCTFail("Failed to create file1"); return }
-                    subject.load(folder: folder) { (result) in
-                        guard case let .success(folder) = result else { XCTFail("Failed to load folder"); return }
-                        XCTAssert(folder.files.count == 2, "Folder file count is not 2")
-                        expectation.fulfill()
-                    }
-                }
-            }
+        do {
+            _ = try subject.create(folder: folder)
+            _ = try subject.save(file: file)
+            _ = try subject.save(file: file1)
+            guard let sut = try? subject.load(folder: folder) else { XCTFail("Failed to load folder"); return }
+            XCTAssert(sut.files.count == 2, "Folder file count is not 2")
+            expectation.fulfill()
+        } catch {
+            XCTFail("Failed to read files")
         }
         wait(for: [expectation], timeout: 1.0)
     }
@@ -84,9 +73,12 @@ class FileKitTests: XCTestCase {
         let folder = Folder(location: folderURL)
 
         let expectation = XCTestExpectation(description: "Wait for folder to be created")
-        subject.create(folder: folder) { _ in
+        do {
+            _ = try subject.create(folder: folder)
             XCTAssertTrue(self.isAccessable(path: folder.location))
             expectation.fulfill()
+        } catch {
+            XCTFail("Failed to read files")
         }
         wait(for: [expectation], timeout: 1.0)
     }
@@ -109,13 +101,16 @@ class FileKitTests: XCTestCase {
         let subject = FileKit()
         let folder = Folder(location: invalidPath)
         let expectation = XCTestExpectation(description: "Wait for folder to be created")
-        subject.create(folder: folder) { result in
-            if case let .failedToCreate(urlOfFolder) = result {
-                XCTAssertEqual(urlOfFolder, folder.location)
-                expectation.fulfill()
-            } else {
-                XCTFail("Creating folder with invalid path should return error")
+        do {
+            _ = try subject.create(folder: folder)
+            XCTFail("Creating folder with invalid path should return error")
+        } catch {
+            guard case let FileKitError.failedToCreate(urlOfFolder) = error else {
+                XCTFail("Failed to read error")
+                return
             }
+            XCTAssertEqual(urlOfFolder, folder.location)
+            expectation.fulfill()
         }
         wait(for: [expectation], timeout: 1.0)
     }
@@ -150,6 +145,7 @@ class FileKitTests: XCTestCase {
         return [
             ("testIfFilePathIsSetToCachesFolder", testIfFilePathIsSetToCachesFolder),
             ("testSavingOfFile", testSavingLoadingOfFile),
+            ("testLoadingOfFolder", testLoadingOfFolder),
             ("testIfCreatingOfDirectoryWorks", testIfCreatingOfDirectoryWorks),
             ("testIfFilePathIsSetToDocumentsFolder", testIfFilePathIsSetToDocumentsFolder),
             ("testIfFilesAreEqual", testIfFilesAreEqual),
