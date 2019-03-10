@@ -116,4 +116,11 @@ public extension FileKit {
         }
         return File(name: "\(resource).\(ext)", folder: Folder(location: path))
     }
+
+    public static func currentWorkingFolder() -> Folder? {
+        guard let currentWorkingURL = URL(string: FileManager.default.currentDirectoryPath) else {
+            return nil
+        }
+        return Folder(location: currentWorkingURL)
+    }
 }
