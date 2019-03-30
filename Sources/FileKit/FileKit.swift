@@ -81,7 +81,7 @@ public class FileKit {
 }
 
 public extension FileKit {
-    public static func pathToFolder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> URL {
+    static func pathToFolder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> URL {
         let urls = FileManager.default.urls(for: searchPath,
                                             in: FileManager.SearchPathDomainMask.userDomainMask)
         guard let url = urls.first else {
@@ -90,19 +90,19 @@ public extension FileKit {
         return url
     }
 
-    public static func folder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> Folder {
+    static func folder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> Folder {
         return Folder(location: pathToFolder(forSearchPath: searchPath))
     }
 
-    public static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
+    static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
         return File(name: name, folder: folder(forSearchPath: .cachesDirectory), data: data)
     }
 
-    public static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
+    static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
         return File(name: name, folder: folder(forSearchPath: .documentDirectory), data: data)
     }
 
-    public static func path(forResource resource: String,
+    static func path(forResource resource: String,
                             withExtension ext: String,
                             inBundle bundle: Bundle,
                             subdirectory subdir: String? = nil) throws -> File {
@@ -117,7 +117,7 @@ public extension FileKit {
         return File(name: "\(resource).\(ext)", folder: Folder(location: path))
     }
 
-    public static func currentWorkingFolder() -> Folder? {
+    static func currentWorkingFolder() -> Folder? {
         guard let currentWorkingURL = URL(string: FileManager.default.currentDirectoryPath) else {
             return nil
         }
