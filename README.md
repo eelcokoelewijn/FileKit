@@ -1,3 +1,3 @@
 # FileKit
 
-A description of this package.
+Wrapper around FileManager to work with files and folders.
