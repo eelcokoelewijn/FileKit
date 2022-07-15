@@ -1,6 +1,6 @@
-import XCTest
-import Foundation
 @testable import FileKit
+import Foundation
+import XCTest
 
 class FileKitTests: XCTestCase {
     var folderURL: URL!
@@ -75,7 +75,7 @@ class FileKitTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Wait for folder to be created")
         do {
             _ = try subject.create(folder: folder)
-            XCTAssertTrue(self.isAccessable(path: folder.location))
+            XCTAssertTrue(isAccessable(path: folder.location))
             expectation.fulfill()
         } catch {
             XCTFail("Failed to read files")
@@ -92,9 +92,11 @@ class FileKitTests: XCTestCase {
     func testIfFilePathIsSetToDocumentsFolder() {
         let documentsPath = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
         let file = File(name: "file.txt", folder: Folder(location: documentsPath))
-        XCTAssertEqual(file.folder.location,
-                       documentsPath,
-                       "\(file.folder.location) should be equal to \(documentsPath)")
+        XCTAssertEqual(
+            file.folder.location,
+            documentsPath,
+            "\(file.folder.location) should be equal to \(documentsPath)"
+        )
     }
 
     func testIfCreatingFolderWithWrongPathFails() {
@@ -138,11 +140,11 @@ class FileKitTests: XCTestCase {
     }
 
     private func isAccessable(path: URL) -> Bool {
-        return FileManager.default.fileExists(atPath: path.path)
+        FileManager.default.fileExists(atPath: path.path)
     }
 
     static var allTests: [(String, (FileKitTests) -> () throws -> Void)] {
-        return [
+        [
             ("testIfFilePathIsSetToCachesFolder", testIfFilePathIsSetToCachesFolder),
             ("testSavingOfFile", testSavingLoadingOfFile),
             ("testLoadingOfFolder", testLoadingOfFolder),

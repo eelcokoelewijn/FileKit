@@ -1,6 +1,6 @@
-import XCTest
 @testable import FileKitTests
+import XCTest
 
 XCTMain([
-     testCase(FileKitTests.allTests)
+    testCase(FileKitTests.allTests)
 ])

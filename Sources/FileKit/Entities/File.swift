@@ -12,10 +12,10 @@ public struct File {
     }
 }
 
-extension File: Equatable { }
+extension File: Equatable {}
 
-extension File {
-    public var location: URL {
+public extension File {
+    var location: URL {
         return folder.location.appendingPathComponent(name)
     }
 }

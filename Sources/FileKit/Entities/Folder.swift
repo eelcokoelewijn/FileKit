@@ -12,4 +12,4 @@ public struct Folder {
     }
 }
 
-extension Folder: Equatable { }
+extension Folder: Equatable {}
