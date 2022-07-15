@@ -142,16 +142,4 @@ class FileKitTests: XCTestCase {
     private func isAccessable(path: URL) -> Bool {
         FileManager.default.fileExists(atPath: path.path)
     }
-
-    static var allTests: [(String, (FileKitTests) -> () throws -> Void)] {
-        [
-            ("testIfFilePathIsSetToCachesFolder", testIfFilePathIsSetToCachesFolder),
-            ("testSavingOfFile", testSavingLoadingOfFile),
-            ("testLoadingOfFolder", testLoadingOfFolder),
-            ("testIfCreatingOfDirectoryWorks", testIfCreatingOfDirectoryWorks),
-            ("testIfFilePathIsSetToDocumentsFolder", testIfFilePathIsSetToDocumentsFolder),
-            ("testIfFilesAreEqual", testIfFilesAreEqual),
-            ("testIfFoldersAreEqual", testIfFoldersAreEqual)
-        ]
-    }
 }
