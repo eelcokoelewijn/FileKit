@@ -6,6 +6,7 @@ public enum FileKitError: Error {
     case failedToDelete(path: URL)
     case failedToCreate(path: URL)
     case folderDoesntExist(path: URL)
+    case searchPathDoesntExist(path: FileManager.SearchPathDirectory)
 }
 
 public class FileKit {
@@ -75,29 +76,29 @@ public class FileKit {
 }
 
 public extension FileKit {
-    static func pathToFolder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> URL {
+    static func pathToFolder(forSearchPath searchPath: FileManager.SearchPathDirectory) throws -> URL {
         let urls = FileManager.default.urls(for: searchPath, in: FileManager.SearchPathDomainMask.userDomainMask)
         guard let url = urls.first else {
-            fatalError("Path to \(searchPath) folder not found")
+            throw FileKitError.searchPathDoesntExist(path: searchPath)
         }
         return url
     }
 
-    static func folder(forSearchPath searchPath: FileManager.SearchPathDirectory) -> Folder {
-        Folder(location: pathToFolder(forSearchPath: searchPath))
+    static func folder(forSearchPath searchPath: FileManager.SearchPathDirectory) throws -> Folder {
+        try Folder(location: pathToFolder(forSearchPath: searchPath))
     }
 
-    static func fileInCachesFolder(withName name: String, data: Data? = nil) -> File {
-        File(name: name, folder: folder(forSearchPath: .cachesDirectory), data: data)
+    static func fileInCachesFolder(withName name: String, data: Data? = nil) throws -> File {
+        try File(name: name, folder: folder(forSearchPath: .cachesDirectory), data: data)
     }
 
-    static func fileInDocumentsFolder(withName name: String, data: Data? = nil) -> File {
-        File(name: name, folder: folder(forSearchPath: .documentDirectory), data: data)
+    static func fileInDocumentsFolder(withName name: String, data: Data? = nil) throws -> File {
+        try File(name: name, folder: folder(forSearchPath: .documentDirectory), data: data)
     }
 
     static func path(forResource resource: String, withExtension ext: String, inBundle bundle: Bundle, subdirectory subdir: String? = nil) throws -> File {
         guard let url = bundle.url(forResource: resource, withExtension: ext, subdirectory: subdir) else {
-            throw (FileKitError.failedToLoad(path: URL(string: resource)!))
+            throw FileKitError.failedToLoad(path: URL(string: resource)!)
         }
 
         var path = URL(fileURLWithPath: url.pathComponents.first!)

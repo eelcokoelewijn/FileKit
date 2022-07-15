@@ -10,7 +10,10 @@ class FileKitTests: XCTestCase {
     var invalidPath: URL!
 
     override func setUp() {
-        pathToCache = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
+        guard let pathToCache = try? FileKit.pathToFolder(forSearchPath: .cachesDirectory) else {
+            XCTFail("Search path not found: .cachesDirectory")
+            return
+        }
         folderURL = URL(string: "filekit", relativeTo: pathToCache)
         filename = "file.txt"
         filename1 = "file1.txt"
@@ -84,13 +87,19 @@ class FileKitTests: XCTestCase {
     }
 
     func testIfFilePathIsSetToCachesFolder() {
-        let cachesPath = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
+        guard let cachesPath = try? FileKit.pathToFolder(forSearchPath: .cachesDirectory) else {
+            XCTFail("Search path not found: .cachesDirectory")
+            return
+        }
         let file = File(name: "file.txt", folder: Folder(location: cachesPath))
         XCTAssertEqual(file.folder.location, cachesPath, "\(file.folder.location) should be equal to \(cachesPath)")
     }
 
     func testIfFilePathIsSetToDocumentsFolder() {
-        let documentsPath = FileKit.pathToFolder(forSearchPath: .cachesDirectory)
+        guard let documentsPath = try? FileKit.pathToFolder(forSearchPath: .cachesDirectory) else {
+            XCTFail("Search path not found: .cachesDirectory")
+            return
+        }
         let file = File(name: "file.txt", folder: Folder(location: documentsPath))
         XCTAssertEqual(
             file.folder.location,
@@ -118,9 +127,14 @@ class FileKitTests: XCTestCase {
     }
 
     func testIfFilesAreEqual() {
-        let folderA = FileKit.folder(forSearchPath: .cachesDirectory)
+        guard
+            let folderA = try? FileKit.folder(forSearchPath: .cachesDirectory),
+            let folderB = try? FileKit.folder(forSearchPath: .cachesDirectory)
+        else {
+            XCTFail("Search path not found: .cachesDirectory")
+            return
+        }
         let fileA = File(name: "A.png", folder: folderA)
-        let folderB = FileKit.folder(forSearchPath: .cachesDirectory)
         let fileB = File(name: "B.png", folder: folderB)
 
         XCTAssertNotEqual(fileA, fileB)
@@ -129,9 +143,15 @@ class FileKitTests: XCTestCase {
     }
 
     func testIfFoldersAreEqual() {
-        let folderPathA = FileKit.folder(forSearchPath: .cachesDirectory).location.appendingPathComponent("document")
+        guard
+            let folderPathA = try? FileKit.folder(forSearchPath: .cachesDirectory).location.appendingPathComponent("document"),
+            let folderPathB = try? FileKit.folder(forSearchPath: .cachesDirectory).location.appendingPathComponent("images")
+        else {
+            XCTFail("Search path not found: .cachesDirectory")
+            return
+        }
         let folderA = Folder(location: folderPathA)
-        let folderPathB = FileKit.folder(forSearchPath: .cachesDirectory).location.appendingPathComponent("images")
+
         let folderB = Folder(location: folderPathB)
 
         XCTAssertNotEqual(folderA, folderB)
