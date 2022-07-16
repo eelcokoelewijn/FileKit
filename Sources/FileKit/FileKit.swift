@@ -7,6 +7,7 @@ public enum FileKitError: Error {
     case failedToCreate(path: URL)
     case folderDoesntExist(path: URL)
     case searchPathDoesntExist(path: FileManager.SearchPathDirectory)
+    case invalid(path: String)
 }
 
 public class FileKit {
@@ -113,5 +114,13 @@ public extension FileKit {
             return nil
         }
         return Folder(location: currentWorkingURL)
+    }
+
+    static func url(fromPath path: String, isDirectory: Bool = true) -> URL {
+        URL(fileURLWithPath: path, isDirectory: isDirectory)
+    }
+
+    static func folder(fromPath path: String, isDirectory: Bool = true) -> Folder {
+        Folder(location: url(fromPath: path))
     }
 }

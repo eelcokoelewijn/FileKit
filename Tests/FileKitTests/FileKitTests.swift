@@ -159,6 +159,18 @@ class FileKitTests: XCTestCase {
         XCTAssertNotEqual(folderA.location, folderB.location)
     }
 
+    func testURLFromPathString() {
+        let subject = FileKit.url(fromPath: ".build/debug")
+        XCTAssertEqual(subject.scheme, "file")
+        XCTAssertEqual(subject.pathComponents.last, "debug")
+    }
+
+    func testFolderFromPathString() {
+        let subject = FileKit.folder(fromPath: ".build/debug")
+        XCTAssertEqual(subject.location.scheme, "file")
+        XCTAssertEqual(subject.location.pathComponents.last, "debug")
+    }
+
     private func isAccessable(path: URL) -> Bool {
         FileManager.default.fileExists(atPath: path.path)
     }
