@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Folder {
+public struct Folder: Equatable {
     public let location: URL
     public let filePaths: [URL]
     public let files: [File]
@@ -11,5 +11,3 @@ public struct Folder {
         self.files = files
     }
 }
-
-extension Folder: Equatable {}
