@@ -12,15 +12,15 @@ public enum FileKitError: Error, LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .failedToSave(path):
-            return "Failed to save file at \(path)"
+            return "Failed to save file at \(path.path)"
         case let .failedToLoad(path):
-            return "Failed to load file at \(path)"
+            return "Failed to load file at \(path.path)"
         case let .failedToDelete(path):
-            return "Failed to delete file at \(path)"
+            return "Failed to delete file at \(path.path)"
         case let .failedToCreate(path):
-            return "Failed to create file at \(path)"
+            return "Failed to create file at \(path.path)"
         case let .folderDoesntExist(path):
-            return "Folder doesn't exist at \(path)"
+            return "Folder doesn't exist at \(path.path)"
         case let .searchPathDoesntExist(path):
             return "Search path doesn't exist at \(path)"
         case let .invalid(path):
@@ -87,8 +87,11 @@ public class FileKit {
         } catch {
             throw FileKitError.failedToLoad(path: folder.location)
         }
-        let files: [File] = fileURLs.map { (url: URL) -> File in
-            File(
+        let files: [File] = fileURLs.compactMap { url -> File? in
+            var isDirectory: ObjCBool = false
+            _fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
+            guard !isDirectory.boolValue else { return nil }
+            return File(
                 name: url.lastPathComponent,
                 folder: Folder(location: folder.location)
             )
@@ -182,11 +185,11 @@ public extension FileKit {
     /// - Returns: The file for the resource.
     static func path(forResource resource: String, withExtension ext: String, inBundle bundle: Bundle, subdirectory subdir: String? = nil) throws -> File {
         guard let url = bundle.url(forResource: resource, withExtension: ext, subdirectory: subdir) else {
-            throw FileKitError.failedToLoad(path: URL(string: resource)!)
+            throw FileKitError.failedToLoad(path: URL(fileURLWithPath: resource))
         }
 
         var path = URL(fileURLWithPath: url.pathComponents.first!)
-        url.pathComponents.dropFirst().dropLast().forEach { component in
+        for component in url.pathComponents.dropFirst().dropLast() {
             path.appendPathComponent(component)
         }
         return File(name: "\(resource).\(ext)", folder: Folder(location: path))
